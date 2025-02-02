@@ -447,14 +447,6 @@ function renderAllShapes(ev) {
   hatFrontR.matrix.scale(1.5, 0.8, 1.8)
   hatFrontR.render();
 
-  //drawHatBarnicle(hatBaseCoorMatrix, [0.2, 0, 0], 1, 0);
-  //drawHatBarnicle(hatBaseCoorMatrix, [0.5, 0, 0], 2, 10);
-  //drawHatBarnicle(hatBaseCoorMatrix, [0.6, 0, 0], 2, 20);
-  //drawHatBarnicle(hatBaseCoorMatrix, [0.8, 0, 0], 2, -10);
-  //drawHatBarnicle(hatBaseCoorMatrix, [-0.2, 0, 0], 2, -20);
-  //drawHatBarnicle(hatBaseCoorMatrix, [-0.4, 0, 0], 2, 0);
-  
-
   var duration = performance.now() - startTime;
   sendToTextHTML(`ms: ${Math.floor(duration)} fps: ${Math.floor(10000/duration)}`, "numdot");
 }
