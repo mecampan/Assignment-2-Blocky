@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Change a point color</title>
+  </head>
+
+  <body onload="main()">
+    <canvas id="webgl" width="600" height="600">
+    Please use a browser that supports "canvas"
+    </canvas>
+    <p>
+    <p id="numdot"> XYZ </p>    
+    <p>Right Arm Forward Back<input type ="range" min="0" max="360" value="0" class="slider" id="ForwardBackSlider">
+    Animation: <button type="button" id="magentaAnimationButtonOn">ON</button>
+    <button type="button" id="magentaAnimationButtonOff">OFF</button>
+
+    <p>Right Arm In and Out<input type ="range" min="0" max="360" value="0" class="slider" id="inOutSlider">
+    Animation: <button type="button" id="yellowAnimationButtonOn">ON</button>
+    <button type="button" id="yellowAnimationButtonOff">OFF</button>
+    
+    <p>Right Arm Up and Down<input type ="range" min="0" max="360" value="0" class="slider" id="upDownSlider">
+      
+    <p>Camera Rotate<input type ="range" min="-180" max="180" value="0" class="slider" id="angleSlider">
+    <p>Camera Yaw<input type ="range" min="-180" max="180" value="0" class="slider" id="yawSlider">
+    <p>Camera Zoom<input type ="range" min="30" max="80" value="80" class="slider" id="zoomSlider">
+    <p><button type="button" id="resetCamera">Reset Camera</button>
+
+    <script src="lib/webgl-utils.js"></script>
+    <script src="lib/webgl-debug.js"></script>
+    <script src="lib/cuon-utils.js"></script>
+    <script src="lib/cuon-matrix-cse160.js"></script>
+    <script src="Triangle.js"></script>
+    <script src="Circle.js"></script>
+    <script src="Cube.js"></script>
+    <script src="Pyramid.js"></script>
+    <script src="Tetrahedron.js"></script>
+    <script src="Point.js"></script>
+    <script src="Snake.js"></script>
+    <script src="BlockyAnimal.js"></script>
+  </body>
+</html>
