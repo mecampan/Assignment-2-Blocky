@@ -76,24 +76,22 @@ function connectVariablesToGLSL() {
 }
 
 // Globals related to HTML UI elements
-let g_selectedSegments = 10;
 let g_globalAngle = 0;
 let g_globaltiltAngle = 0;
-let g_globalZoom = 1.0;
-let g_armPiece = 0;
-let g_inOutPiece = 0;
-let g_forwardBackPiece = 0;
+let g_globalZoom = 0.5;
 
-var g_eyeBlink = 1;
-
-let g_faceAnimation = true;
+let g_faceAnimation = false;
 let g_bodyAnimationOn = false;
 
 let g_headAnimation = 0;
 let g_bodyAnimation = 0;
 let g_armSwipeAnimation = 0;
+var g_eyeBlink = 1;
 
-let angleSlider, tiltSlider, zoomSlider;
+let g_upperArmAngle = 0;
+let g_lowerArmAngle = 0;
+
+let angleSlider, tiltSlider, zoomSlider, upperArmSlider, lowerArmSlider;
 
 function addActionsforHtmlUI() {
   angleSlider = document.getElementById('angleSlider');
@@ -106,22 +104,22 @@ function addActionsforHtmlUI() {
   document.getElementById('resetCamera').onclick = function() { 
     angleSlider.value = 0; 
     tiltSlider.value = 0; 
-    zoomSlider.value = 100; 
+    zoomSlider.value = 50; 
 
     g_globalAngle = 0;
     g_globaltiltAngle = 0;
-    g_globalZoom = 1.0;
+    g_globalZoom = 0.5;
 
     renderAllShapes(); 
   };
 
-  document.getElementById('angleSlider').addEventListener('mouseup',  function() { g_globalAngle = this.value; renderAllShapes(); });
-  document.getElementById('ForwardBackSlider').addEventListener('mousemove',  function() { g_forwardBackPiece = this.value; renderAllShapes(); });
-  document.getElementById('ForwardBackSlider').addEventListener('mouseup',  function() { g_forwardBackPiece = this.value; renderAllShapes(); });
-  document.getElementById('inOutSlider').addEventListener('mousemove',  function() { g_inOutPiece = this.value; renderAllShapes(); });
-  document.getElementById('inOutSlider').addEventListener('mouseup',  function() { g_inOutPiece = this.value; renderAllShapes(); });
-  document.getElementById('armMovementSlider').addEventListener('mousemove',  function() { g_armPiece = this.value; renderAllShapes(); });
-  document.getElementById('armMovementSlider').addEventListener('mouseup',  function() { g_armPiece = this.value; renderAllShapes(); });
+  upperArmSlider = document.getElementById('upperArmSlider');
+  upperArmSlider.addEventListener('mousemove',  function() { g_upperArmAngle = this.value; renderAllShapes(); });
+  upperArmSlider.addEventListener('mouseup',  function() { g_upperArmAngle = this.value; renderAllShapes(); });
+
+  lowerArmSlider = document.getElementById('lowerArmSlider');
+  lowerArmSlider.addEventListener('mousemove',  function() { g_lowerArmAngle = this.value; renderAllShapes(); });
+  lowerArmSlider.addEventListener('mouseup',  function() { g_lowerArmAngle = this.value; renderAllShapes(); });
 
   document.getElementById('faceAnimationButtonOn').onclick = function() { g_faceAnimation = true; };
   document.getElementById('faceAnimationButtonOff').onclick = function() { g_faceAnimation = false; };
@@ -159,7 +157,7 @@ function setupMouseCamera() {
   }
   
   window.onmouseup = function() {
-    dragging = false; // Stop tracking movement
+    dragging = false;
   }
 }
 
@@ -173,7 +171,6 @@ function main() {
   // Specify the color for clearing <canvas>
   gl.clearColor(0.5, 0.5, 0.5, 1.0);
   //gl.clear(gl.COLOR_BUFFER_BIT);
-  //renderAllShapes();
 
   requestAnimationFrame(tick);
 }
@@ -181,13 +178,14 @@ function main() {
 var g_startTime = performance.now() / 1000.0;
 var g_seconds = performance.now()/1000.0-g_startTime;
 
-// Called by browser repeatedly whener its time
+// Called by browser repeatedly whenever its time
 function tick() {
   // Print some debug information so we know we are running
   g_seconds = performance.now()/1000.0-g_startTime;
   //console.log(g_seconds);
 
   updateAnimationAngles();
+  
   // Update eye blinking animation
   if(g_faceAnimation){
     updateBlink();
@@ -204,7 +202,20 @@ function updateAnimationAngles() {
   if(g_bodyAnimationOn){
     g_bodyAnimation = 15*Math.sin(g_seconds);    
     g_armSwipeAnimation = 45*Math.sin(g_seconds);    
-    g_headAnimation = 5*Math.sin(g_seconds);    
+    g_headAnimation = 5*Math.sin(g_seconds);
+
+    g_upperArmAnimation = 15*Math.sin(g_seconds);
+    g_lowerArmAnimation = 30*Math.sin(g_seconds);
+
+    // Update sliders to match animation
+    upperArmSlider.value = (g_upperArmAnimation + 15) / 30 * 100;
+    lowerArmSlider.value = (g_lowerArmAnimation + 30) / 60 * 100;
+  }
+  else
+  {
+    // Set up the maximum angles to match the slider value of 0 to 100
+    g_upperArmAnimation = -15 + upperArmSlider.value / 100 * 30;
+    g_lowerArmAnimation = -30 + lowerArmSlider.value / 100 * 60;
   }
 }
 
@@ -309,25 +320,26 @@ function renderAllShapes(ev) {
   leftUpperArm.matrix = new Matrix4(bodyCoordinatesMat)
   leftUpperArm.matrix.translate(-0.9, -1.5, -0.35);
   leftUpperArm.matrix.rotate(-20, 0, 0, 1);
-  leftUpperArm.matrix.rotate(g_bodyAnimation, 1, 1, 0);
+  leftUpperArm.matrix.rotate(g_upperArmAnimation, 1, 1, 0);
   leftArmMatrixCoor = new Matrix4(leftUpperArm.matrix)
   leftUpperArm.matrix.scale(0.4, 1.0, 0.4);
   leftUpperArm.render();
 
   var leftForearm = new Cube();
   leftForearm.color = clothesColor;
-  leftForearm.matrix.rotate(g_armSwipeAnimation, 0, 1, 0);
   leftForearm.matrix = new Matrix4(leftArmMatrixCoor)
+  leftForearm.matrix.rotate(g_lowerArmAnimation, 1, 0, 0);
   leftForearm.matrix.translate(0.0, 0.3, -0.2);
   leftForearm.matrix.rotate(-120, 1, 0, 0);
+  leftForearmMatrixCoor = new Matrix4(leftForearm.matrix);
   leftForearm.matrix.scale(0.4, 1.0, 0.4);
   leftForearm.render();
 
   var sword = new Tetrahedron();
   sword.color = [0.71, 0.71, 0.71, 1.0];
-  sword.matrix = new Matrix4(leftArmMatrixCoor)
-  sword.matrix.translate(0.1, -0.2, -0.9);
-  sword.matrix.rotate(-15, 1, 0, 0);
+  sword.matrix = new Matrix4(leftForearmMatrixCoor)
+  sword.matrix.translate(0.1, 1.0, 0.0);
+  sword.matrix.rotate(90, 1, 0, 0);
   sword.matrix.scale(0.1, 3.0, 0.1);
   sword.render();
   
@@ -338,19 +350,62 @@ function renderAllShapes(ev) {
   rightUpperArm.matrix.scale(-1.0, 1.0, 1.0);
   rightUpperArm.matrix.translate(-1.4, -1.5, -0.35);
   rightUpperArm.matrix.rotate(-20, 0, 0, 1);
-  rightUpperArm.matrix.rotate(g_bodyAnimation, 1, 1, 0);
+  rightUpperArm.matrix.rotate(g_upperArmAnimation, 1, 1, 0);
   rightArmMatrixCoor = new Matrix4(rightUpperArm.matrix)
   rightUpperArm.matrix.scale(0.4, 1.0, 0.4);
   rightUpperArm.render();
 
   var rightForearm = new Cube();
   rightForearm.color = clothesColor;
-  rightForearm.matrix.rotate(g_armSwipeAnimation, 0, 1, 0);
+  rightForearm.matrix.rotate(g_lowerArmAnimation, 0, 1, 0);
   rightForearm.matrix = new Matrix4(rightArmMatrixCoor)
   rightForearm.matrix.translate(0.0, 0.3, -0.2);
   rightForearm.matrix.rotate(-120, 1, 0, 0);
   rightForearm.matrix.scale(0.4, 1.0, 0.4);
   rightForearm.render();
+
+  // ------------------------
+  var lowerBody = new Pyramid();
+  lowerBody.color = clothesColor;
+  var lowerBodyCoordinatesMat = new Matrix4(lowerBody.matrix);
+  lowerBody.matrix.translate(-0.5, -2.2, -0.1);
+  lowerBody.matrix.scale(1.5, 2.6, 0.7);
+  lowerBody.render();
+  
+  var rightUpperLeg = new Cube();
+  rightUpperLeg.color = clothesColor;
+  rightUpperLeg.matrix = new Matrix4(bodyCoordinatesMat)
+  rightUpperLeg.matrix.scale(-1.0, 1.0, 1.0);
+  rightUpperLeg.matrix.translate(-0.8, -2.9, -0.35);
+  rightUpperLeg.matrix.rotate(0, 0, 0, 1);
+  rightLegMatrixCoor = new Matrix4(rightUpperLeg.matrix)
+  rightUpperLeg.matrix.scale(0.5, 1.0, 0.4);
+  rightUpperLeg.render();
+
+  var rightLowerLeg = new Cube();
+  rightLowerLeg.color = clothesColor;
+  rightLowerLeg.matrix = new Matrix4(rightLegMatrixCoor)
+  rightLowerLeg.matrix.translate(0.0, 0.3, -0.4);
+  rightLowerLeg.matrix.rotate(-180, 1, 0, 0);
+  rightLowerLeg.matrix.scale(0.5, 1.0, 0.4);
+  rightLowerLeg.render();
+
+  var leftUpperLeg = new Cube();
+  leftUpperLeg.color = clothesColor;
+  leftUpperLeg.matrix = new Matrix4(bodyCoordinatesMat)
+  leftUpperLeg.matrix.translate(-0.3, -2.9, -0.35);
+  leftUpperLeg.matrix.rotate(0, 0, 0, 1);
+  leftLegMatrixCoor = new Matrix4(leftUpperLeg.matrix)
+  leftUpperLeg.matrix.scale(0.5, 1.0, 0.4);
+  leftUpperLeg.render();
+
+  var leftLowerLeg = new Cube();
+  leftLowerLeg.color = clothesColor;
+  leftLowerLeg.matrix = new Matrix4(leftLegMatrixCoor)
+  leftLowerLeg.matrix.translate(0.0, 0.3, -0.4);
+  leftLowerLeg.matrix.rotate(-180, 1, 0, 0);
+  leftLowerLeg.matrix.scale(0.5, 1.0, 0.4);
+  leftLowerLeg.render();  
 
   // Head
   var head = new Cube();

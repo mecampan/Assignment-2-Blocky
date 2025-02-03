@@ -6,24 +6,22 @@
   </head>
 
   <body onload="main()">
-    <canvas id="webgl" width="600" height="600">
+    <canvas id="webgl" width="500" height="500">
     Please use a browser that supports "canvas"
     </canvas>
     <p>
     <p id="numdot"> XYZ </p>    
-    <p>Right Arm Forward Back<input type ="range" min="0" max="360" value="0" class="slider" id="ForwardBackSlider">
-    Animation for Body: <button type="button" id="bodyAnimationButtonOn">ON</button>
-    <button type="button" id="bodyAnimationButtonOff">OFF</button>
+    <p>Upper Arm Slider<input type ="range" min="0" max="100" value="50" class="slider" id="upperArmSlider">
+    <p>Lower Arm Slider<input type ="range" min="0" max="100" value="50" class="slider" id="lowerArmSlider">
 
-    <p>Right Arm In and Out<input type ="range" min="0" max="360" value="0" class="slider" id="inOutSlider">
-    Animation for Face: <button type="button" id="faceAnimationButtonOn">ON</button>
+    <p>Animation for Face: <button type="button" id="faceAnimationButtonOn">ON</button>
     <button type="button" id="faceAnimationButtonOff">OFF</button>
-    
-    <p>Arm Movement Slider<input type ="range" min="0" max="100" value="0" class="slider" id="armMovementSlider">
+    <p>Animation for Body: <button type="button" id="bodyAnimationButtonOn">ON</button>
+    <button type="button" id="bodyAnimationButtonOff">OFF</button>
     
     <p>Camera Rotate<input type ="range" min="-180" max="180" value="0" class="slider" id="angleSlider">
     <p>Camera Tilt<input type ="range" min="-180" max="180" value="0" class="slider" id="tiltSlider">
-    <p>Camera Zoom<input type ="range" min="30" max="80" value="80" class="slider" id="zoomSlider">
+    <p>Camera Zoom<input type ="range" min="30" max="80" value="50" class="slider" id="zoomSlider">
     <p><button type="button" id="resetCamera">Reset Camera</button>
 
     <script src="lib/webgl-utils.js"></script>
