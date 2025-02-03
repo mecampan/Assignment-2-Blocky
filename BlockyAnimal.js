@@ -80,11 +80,18 @@ let g_selectedSegments = 10;
 let g_globalAngle = 0;
 let g_globaltiltAngle = 0;
 let g_globalZoom = 1.0;
-let g_upDownPiece = 0;
+let g_armPiece = 0;
 let g_inOutPiece = 0;
 let g_forwardBackPiece = 0;
+
+var g_eyeBlink = 1;
+
 let g_faceAnimation = true;
-let g_magentaAnimation = false;
+let g_bodyAnimationOn = false;
+
+let g_headAnimation = 0;
+let g_bodyAnimation = 0;
+let g_armSwipeAnimation = 0;
 
 let angleSlider, tiltSlider, zoomSlider;
 
@@ -99,11 +106,11 @@ function addActionsforHtmlUI() {
   document.getElementById('resetCamera').onclick = function() { 
     angleSlider.value = 0; 
     tiltSlider.value = 0; 
-    zoomSlider.value = 80; 
+    zoomSlider.value = 100; 
 
     g_globalAngle = 0;
     g_globaltiltAngle = 0;
-    g_globalZoom = 0.8;
+    g_globalZoom = 1.0;
 
     renderAllShapes(); 
   };
@@ -113,14 +120,14 @@ function addActionsforHtmlUI() {
   document.getElementById('ForwardBackSlider').addEventListener('mouseup',  function() { g_forwardBackPiece = this.value; renderAllShapes(); });
   document.getElementById('inOutSlider').addEventListener('mousemove',  function() { g_inOutPiece = this.value; renderAllShapes(); });
   document.getElementById('inOutSlider').addEventListener('mouseup',  function() { g_inOutPiece = this.value; renderAllShapes(); });
-  document.getElementById('upDownSlider').addEventListener('mousemove',  function() { g_upDownPiece = this.value; renderAllShapes(); });
-  document.getElementById('upDownSlider').addEventListener('mouseup',  function() { g_upDownPiece = this.value; renderAllShapes(); });
+  document.getElementById('armMovementSlider').addEventListener('mousemove',  function() { g_armPiece = this.value; renderAllShapes(); });
+  document.getElementById('armMovementSlider').addEventListener('mouseup',  function() { g_armPiece = this.value; renderAllShapes(); });
 
   document.getElementById('faceAnimationButtonOn').onclick = function() { g_faceAnimation = true; };
   document.getElementById('faceAnimationButtonOff').onclick = function() { g_faceAnimation = false; };
 
-  document.getElementById('magentaAnimationButtonOn').onclick = function() { g_magentaAnimation = true; };
-  document.getElementById('magentaAnimationButtonOff').onclick = function() { g_magentaAnimation = false; };
+  document.getElementById('bodyAnimationButtonOn').onclick = function() { g_bodyAnimationOn = true; };
+  document.getElementById('bodyAnimationButtonOff').onclick = function() { g_bodyAnimationOn = false; };
 }
 
 let startingMouseX = 0;
@@ -181,7 +188,10 @@ function tick() {
   //console.log(g_seconds);
 
   updateAnimationAngles();
-
+  // Update eye blinking animation
+  if(g_faceAnimation){
+    updateBlink();
+  }
   // Draw everything
   renderAllShapes();
 
@@ -191,10 +201,29 @@ function tick() {
 
 function updateAnimationAngles() {
 
-  if(g_magentaAnimation){
-    g_magentaPiece = 45*Math.sin(g_seconds);    
+  if(g_bodyAnimationOn){
+    g_bodyAnimation = 15*Math.sin(g_seconds);    
+    g_armSwipeAnimation = 45*Math.sin(g_seconds);    
+    g_headAnimation = 5*Math.sin(g_seconds);    
   }
+}
 
+function updateBlink() {
+  const blinkPeriod = 5;  // Time between blinks
+  const blinkDuration = 0.5; // Blink lasts 0.5 seconds
+
+  // Get time since the last blink started
+  let blinkTime = g_seconds % blinkPeriod;
+
+  if (blinkTime < blinkDuration) {
+      // Normalized progress (0 → 1 during blink duration)
+      let t = blinkTime / blinkDuration;
+
+      // Smooth blink transition using quadratic ease-in-out
+      g_eyeBlink = 1 - (4 * t * (1 - t)); // Creates a smooth curve 1 → 0 → 1
+  } else {
+      g_eyeBlink = 1; // Keep eyes fully open outside the blink
+  }
 }
 
 function drawTentacle(attachedMat, pos, rotation, segments, delay) {
@@ -223,7 +252,7 @@ function drawTentacle(attachedMat, pos, rotation, segments, delay) {
 
     tentacle.render();
     prevSegment = new Matrix4(tentacle.matrix);
-    drawTentacleRing(prevSegment, tentacle.color);
+    //drawTentacleRing(prevSegment, tentacle.color);
   }
 }
 
@@ -248,20 +277,75 @@ function renderAllShapes(ev) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  // Central Body
-  var body = new Cube();
-  body.color = [0.22, 0.58, 0.5, 1.0];
-  body.matrix.scale(0.7, 0.7, 0.7);
-  var bodyCoordinatesMat = new Matrix4(body.matrix);
-  body.matrix.translate(-0.2, -0.51, -0.3);
-  var bodyCoordinatesMatrix = new Matrix4(body.matrix);
-  body.matrix.scale(1.0, 0.6, 1.0);
-  body.render();
+  var darkerColor = 0.05;
+  var clothesColor = [0.16 - darkerColor, 0.11 - darkerColor, 0.05 - darkerColor, 1.0];  
+
+  // Body if there is time
+  upperBody = new Pyramid();
+  upperBody.color = clothesColor;
+  var bodyCoordinatesMat = new Matrix4(upperBody.matrix);
+  upperBody.matrix.translate(1.15, -0.5, -0.3);
+  upperBody.matrix.rotate(180, 0, 0, 1);
+  upperBody.matrix.scale(1.8, 2.6, 0.5);
+  upperBody.render();
+
+  neck = new Pyramid();
+  neck.color = clothesColor;
+  neck.matrix.matrix = new Matrix4(bodyCoordinatesMat)
+  neck.matrix.translate(-0.5, -0.7, -0.33);
+  neck.matrix.scale(1.5, 1.0, 0.5);
+  neck.render();  
+  
+  upperBodyAbdomen = new Cube();
+  upperBodyAbdomen.color = clothesColor;
+  upperBodyAbdomen.matrix = new Matrix4(bodyCoordinatesMat)
+  upperBodyAbdomen.matrix.translate(-0.25, -1.8, -0.3);
+  upperBodyAbdomen.matrix.scale(1.0, 1.3, 0.5);
+  upperBodyAbdomen.render();
+
+  leftUpperArm = new Cube();
+  leftUpperArm.color = clothesColor;
+  leftUpperArm.matrix = new Matrix4(bodyCoordinatesMat)
+  leftUpperArm.matrix.translate(-0.9, -1.5, -0.35);
+  leftUpperArm.matrix.rotate(-20, 0, 0, 1);
+  leftUpperArm.matrix.rotate(g_bodyAnimation, 1, 1, 0);
+  leftArmMatrixCoor = new Matrix4(leftUpperArm.matrix)
+  leftUpperArm.matrix.scale(0.4, 1.0, 0.4);
+  leftUpperArm.render();
+
+  leftForearm = new Cube();
+  leftForearm.color = clothesColor;
+  leftForearm.matrix.rotate(g_armSwipeAnimation, 0, 1, 0);
+  leftForearm.matrix = new Matrix4(leftArmMatrixCoor)
+  leftForearm.matrix.translate(0.0, 0.3, -0.2);
+  leftForearm.matrix.rotate(-120, 1, 0, 0);
+  leftForearm.matrix.scale(0.4, 1.0, 0.4);
+  leftForearm.render();
+
+  sword = new Tetrahedron();
+  sword.color = [0.71, 0.71, 0.71, 1.0];
+  sword.matrix = new Matrix4(leftArmMatrixCoor)
+  sword.matrix.translate(0.1, -0.2, -0.9);
+  sword.matrix.rotate(-15, 1, 0, 0);
+  sword.matrix.scale(0.1, 3.0, 0.1);
+  sword.render();
+  
+  // Head
+  var head = new Cube();
+  head.color = [0.22, 0.58, 0.5, 1.0];
+  head.matrix = new Matrix4(bodyCoordinatesMat);
+  head.matrix.scale(0.7, 0.7, 0.7);
+  head.matrix.rotate(-g_headAnimation, 0, 1, 1);
+  var headCoordinatesMat = new Matrix4(head.matrix);
+  head.matrix.translate(-0.2, -0.51, -0.3);
+  var headCoordinatesMatrix = new Matrix4(head.matrix);
+  head.matrix.scale(1.0, 0.6, 1.0);
+  head.render();
 
   // Middle Face Tentacles
   var noseBridgeLeft= new Cube();
   noseBridgeLeft.color = [0.1, 0.7, 0.6, 1.0];
-  noseBridgeLeft.matrix = new Matrix4(bodyCoordinatesMat);
+  noseBridgeLeft.matrix = new Matrix4(headCoordinatesMat);
   noseBridgeLeft.matrix.translate(0.12, -0.25, -1.27);
   noseBridgeLeft.matrix.rotate(-65, 0, 0, 1);
   noseBridgeLeft.matrix.scale(0.05, 0.25, 0.11);
@@ -271,7 +355,7 @@ function renderAllShapes(ev) {
 
   var noseBridgeRight = new Cube();
   noseBridgeRight.color = [0.1, 0.7, 0.6, 1.0];
-  noseBridgeRight.matrix = new Matrix4(bodyCoordinatesMat);
+  noseBridgeRight.matrix = new Matrix4(headCoordinatesMat);
   noseBridgeRight.matrix.scale(-1.0, 1.0, 1.0);
   noseBridgeRight.matrix.translate(-0.48, -0.25, -1.27);
   noseBridgeRight.matrix.rotate(-65, 0, 0, 1);
@@ -280,34 +364,35 @@ function renderAllShapes(ev) {
   noseBridgeRight.matrix.rotate(-10, 0, 0, 1);
   noseBridgeRight.render();
 
-  drawTentacle(new Matrix4(bodyCoordinatesMatrix), [0.25, 0.0, -0.9], 15, 7, 0.2 + Math.sin(g_seconds) / 10);
-  drawTentacle(new Matrix4(bodyCoordinatesMatrix), [0.6, 0.0, -0.9], 15, 7, 0.2 + Math.sin(g_seconds) / 10);
+  drawTentacle(new Matrix4(headCoordinatesMatrix), [0.25, 0.0, -0.9], 15, 7, 0.2 + Math.sin(g_seconds) / 10);
+  drawTentacle(new Matrix4(headCoordinatesMatrix), [0.6, 0.0, -0.9], 15, 7, 0.2 + Math.sin(g_seconds) / 10);
 
   // Beard Tentacles
-  drawTentacle(new Matrix4(bodyCoordinatesMatrix), [0.37, -0.2, -0.88], 15, 8, 0.5 + Math.sin(g_seconds) / 10);
-  drawTentacle(new Matrix4(bodyCoordinatesMatrix), [0.53, -0.2, -0.88], 15, 8, 0.5 + Math.sin(g_seconds) / 10);
+  drawTentacle(new Matrix4(headCoordinatesMatrix), [0.37, -0.2, -0.88], 15, 8, 0.5 + Math.sin(g_seconds) / 10);
+  drawTentacle(new Matrix4(headCoordinatesMatrix), [0.53, -0.2, -0.88], 15, 8, 0.5 + Math.sin(g_seconds) / 10);
 
   // Left beard Tentacles hieght decreasing
-  drawTentacle(new Matrix4(bodyCoordinatesMatrix), [0.25, -0.25, -0.86], 15, 3, 0.4 + Math.sin(g_seconds) / 10);
-  drawTentacle(new Matrix4(bodyCoordinatesMatrix), [0.15, -0.15, -0.86], 15, 3, 0.3 + Math.sin(g_seconds) / 10);
-  drawTentacle(new Matrix4(bodyCoordinatesMatrix), [0.0, -0.1, -0.86], 15, 2, 0.2 + Math.sin(g_seconds) / 10);
+  drawTentacle(new Matrix4(headCoordinatesMatrix), [0.25, -0.25, -0.86], 15, 3, 0.4 + Math.sin(g_seconds) / 10);
+  drawTentacle(new Matrix4(headCoordinatesMatrix), [0.15, -0.15, -0.86], 15, 3, 0.3 + Math.sin(g_seconds) / 10);
+  drawTentacle(new Matrix4(headCoordinatesMatrix), [0.0, -0.1, -0.86], 15, 2, 0.2 + Math.sin(g_seconds) / 10);
 
   // Right beard Tentacles hieght decreasing
-  drawTentacle(new Matrix4(bodyCoordinatesMatrix), [0.6, -0.25, -0.86], 15, 3, 0.4 + Math.sin(g_seconds) / 10);
-  drawTentacle(new Matrix4(bodyCoordinatesMatrix), [0.75, -0.15, -0.86], 15, 3, 0.3 + Math.sin(g_seconds) / 10);
-  drawTentacle(new Matrix4(bodyCoordinatesMatrix), [0.86, -0.1, -0.86], 15, 2, 0.2 + Math.sin(g_seconds) / 10);
+  drawTentacle(new Matrix4(headCoordinatesMatrix), [0.6, -0.25, -0.86], 15, 3, 0.4 + Math.sin(g_seconds) / 10);
+  drawTentacle(new Matrix4(headCoordinatesMatrix), [0.75, -0.15, -0.86], 15, 3, 0.3 + Math.sin(g_seconds) / 10);
+  drawTentacle(new Matrix4(headCoordinatesMatrix), [0.86, -0.1, -0.86], 15, 2, 0.2 + Math.sin(g_seconds) / 10);
 
   //Eyes
   var leftEye = new Cube();
   leftEye.color = [0.0, 0.0, 0.0, 1.0];
-  leftEye.matrix = new Matrix4(bodyCoordinatesMat);
+  leftEye.matrix = new Matrix4(headCoordinatesMat);
   leftEye.matrix.translate(0.05, -0.2, -1.21);
   leftEye.matrix.scale(0.1, 0.15, 0.1);
+  leftEye.matrix.scale(1.0, g_eyeBlink, 1.0);
   leftEye.render();
 
   var leftEyebrow = new Cube();
   leftEyebrow.color = [0.12, 0.48, 0.4, 1.0];
-  leftEyebrow.matrix = new Matrix4(bodyCoordinatesMat);
+  leftEyebrow.matrix = new Matrix4(headCoordinatesMat);
   leftEyebrow.matrix.translate(0.2, -0.12, -1.21);
   leftEyebrow.matrix.rotate(65, 0, 0, 1);
   leftEyebrow.matrix.scale(0.05, 0.25, 0.11);
@@ -315,7 +400,7 @@ function renderAllShapes(ev) {
 
   var leftEyeSunken = new Cube();
   leftEyeSunken.color = [0.3, 0.48, 0.37, 1.0];
-  leftEyeSunken.matrix = new Matrix4(bodyCoordinatesMat);
+  leftEyeSunken.matrix = new Matrix4(headCoordinatesMat);
   leftEyeSunken.matrix.translate(0.22, -0.27, -1.199);
   leftEyeSunken.matrix.rotate(30, 0, 0, 1);
   leftEyeSunken.matrix.scale(0.15, 0.25, 0.11);
@@ -324,14 +409,15 @@ function renderAllShapes(ev) {
 
   var rightEye = new Cube();
   rightEye.color = [0.0, 0.0, 0.0, 1.0];
-  rightEye.matrix = new Matrix4(bodyCoordinatesMat);
+  rightEye.matrix = new Matrix4(headCoordinatesMat);
   rightEye.matrix.translate(0.45, -0.2, -1.21);
   rightEye.matrix.scale(0.1, 0.15, 0.1);
+  rightEye.matrix.scale(1.0, g_eyeBlink, 1.0);
   rightEye.render();  
 
   var rightEyebrow = new Cube();
   rightEyebrow.color = [0.12, 0.48, 0.4, 1.0];
-  rightEyebrow.matrix = new Matrix4(bodyCoordinatesMat);
+  rightEyebrow.matrix = new Matrix4(headCoordinatesMat);
   rightEyebrow.matrix.scale(-1.0, 1.0, 1.0);  
   rightEyebrow.matrix.translate(-0.4, -0.12, -1.21);
   rightEyebrow.matrix.rotate(65, 0, 0, 1);
@@ -340,7 +426,7 @@ function renderAllShapes(ev) {
 
   var rightEyeSunken = new Cube();
   rightEyeSunken.color = [0.3, 0.48, 0.37, 1.0];
-  rightEyeSunken.matrix = new Matrix4(bodyCoordinatesMat);
+  rightEyeSunken.matrix = new Matrix4(headCoordinatesMat);
   rightEyeSunken.matrix.scale(-1.0, 1.0, 1.0);  
   rightEyeSunken.matrix.translate(-0.4, -0.27, -1.199);
   rightEyeSunken.matrix.rotate(30, 0, 0, 1);
@@ -351,7 +437,7 @@ function renderAllShapes(ev) {
   // Mouth
   var mouthLeft = new Cube();
   mouthLeft.color = [0.0, 0.0, 0.0, 1.0];
-  mouthLeft.matrix = new Matrix4(bodyCoordinatesMat);
+  mouthLeft.matrix = new Matrix4(headCoordinatesMat);
   mouthLeft.matrix.translate(0.21, -0.32, -1.27);
   mouthLeft.matrix.rotate(-65, 0, 0, 1);
   mouthLeft.matrix.scale(0.05, 0.25, 0.11);
@@ -360,7 +446,7 @@ function renderAllShapes(ev) {
 
   var mouthRight = new Cube();
   mouthRight.color = [0.0, 0.0, 0.0, 1.0];
-  mouthRight.matrix = new Matrix4(bodyCoordinatesMat);
+  mouthRight.matrix = new Matrix4(headCoordinatesMat);
   mouthRight.matrix.scale(-1.0, 1.0, 1.0);  
   mouthRight.matrix.translate(-0.4, -0.32, -1.27);
   mouthRight.matrix.rotate(-65, 0, 0, 1);
@@ -373,7 +459,7 @@ function renderAllShapes(ev) {
   var hatColor = [0.08, 0.09, 0.15, 1.0];
   var hatBase = new Cube();
   hatBase.color = [0.67, 0.61, 0.44, 1.0];
-  hatBase.matrix = new Matrix4(bodyCoordinatesMat);
+  hatBase.matrix = new Matrix4(headCoordinatesMat);
   hatBase.matrix.translate(-0.201, 0.0, -0.27);
   hatBaseCoorMatrix = new Matrix4(hatBase.matrix);
   hatBase.matrix.scale(1.002, 0.311, 0.8);
@@ -488,7 +574,6 @@ function renderAllShapes(ev) {
   hatFrontR.render();
 
   //----------------------------
-  // Body if there is time
 
   var duration = performance.now() - startTime;
   sendToTextHTML(`ms: ${Math.floor(duration)} fps: ${Math.floor(10000/duration)}`, "numdot");
