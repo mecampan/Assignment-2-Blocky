@@ -93,16 +93,12 @@ let g_lowerArmAngle = 0;
 
 let angleSlider, tiltSlider, zoomSlider, upperArmSlider, lowerArmSlider;
 
-const musicPlayer = new Audio("hes_a_pirate.ogg");
+let musicPlaying = false;
+let musicPlayer = new Audio('hes_a_pirate.ogg');
 if(musicPlayer === null) {
   console.log('Failed to get the music file.');
 }
-else
-{
-  console.log(musicPlayer);
-}
-// Variable to track music state
-let musicPlaying = false;
+musicPlayer.volume = 0.4
 
 function addActionsforHtmlUI() {
   angleSlider = document.getElementById('angleSlider');
@@ -138,12 +134,11 @@ function addActionsforHtmlUI() {
   document.getElementById('bodyAnimationButtonOn').onclick = function() { g_bodyAnimationOn = true; };
   document.getElementById('bodyAnimationButtonOff').onclick = function() { g_bodyAnimationOn = false; };
 
-  document.getElementById('pirateMusicButton').onClick = function() { 
+  document.getElementById('pirateMusicButton').onclick = function() {
     if (musicPlaying) {
       musicPlayer.pause();
     } 
     else {
-      console.log("startingMusic");
       musicPlayer.play();
     }
     musicPlaying = !musicPlaying;
