@@ -303,6 +303,7 @@ function renderAllShapes(ev) {
   upperBodyAbdomen.matrix.scale(1.0, 1.3, 0.5);
   upperBodyAbdomen.render();
 
+  // -------------------------
   var leftUpperArm = new Cube();
   leftUpperArm.color = clothesColor;
   leftUpperArm.matrix = new Matrix4(bodyCoordinatesMat)
@@ -322,6 +323,15 @@ function renderAllShapes(ev) {
   leftForearm.matrix.scale(0.4, 1.0, 0.4);
   leftForearm.render();
 
+  var sword = new Tetrahedron();
+  sword.color = [0.71, 0.71, 0.71, 1.0];
+  sword.matrix = new Matrix4(leftArmMatrixCoor)
+  sword.matrix.translate(0.1, -0.2, -0.9);
+  sword.matrix.rotate(-15, 1, 0, 0);
+  sword.matrix.scale(0.1, 3.0, 0.1);
+  sword.render();
+  
+  // -------------------------
   var rightUpperArm = new Cube();
   rightUpperArm.color = clothesColor;
   rightUpperArm.matrix = new Matrix4(bodyCoordinatesMat)
@@ -342,14 +352,6 @@ function renderAllShapes(ev) {
   rightForearm.matrix.scale(0.4, 1.0, 0.4);
   rightForearm.render();
 
-  var sword = new Tetrahedron();
-  sword.color = [0.71, 0.71, 0.71, 1.0];
-  sword.matrix = new Matrix4(leftArmMatrixCoor)
-  sword.matrix.translate(0.1, -0.2, -0.9);
-  sword.matrix.rotate(-15, 1, 0, 0);
-  sword.matrix.scale(0.1, 3.0, 0.1);
-  sword.render();
-  
   // Head
   var head = new Cube();
   head.color = [0.22, 0.58, 0.5, 1.0];
