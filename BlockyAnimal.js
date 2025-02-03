@@ -296,14 +296,14 @@ function renderAllShapes(ev) {
   neck.matrix.scale(1.5, 1.0, 0.5);
   neck.render();  
   
-  upperBodyAbdomen = new Cube();
+  var upperBodyAbdomen = new Cube();
   upperBodyAbdomen.color = clothesColor;
   upperBodyAbdomen.matrix = new Matrix4(bodyCoordinatesMat)
   upperBodyAbdomen.matrix.translate(-0.25, -1.8, -0.3);
   upperBodyAbdomen.matrix.scale(1.0, 1.3, 0.5);
   upperBodyAbdomen.render();
 
-  leftUpperArm = new Cube();
+  var leftUpperArm = new Cube();
   leftUpperArm.color = clothesColor;
   leftUpperArm.matrix = new Matrix4(bodyCoordinatesMat)
   leftUpperArm.matrix.translate(-0.9, -1.5, -0.35);
@@ -313,7 +313,7 @@ function renderAllShapes(ev) {
   leftUpperArm.matrix.scale(0.4, 1.0, 0.4);
   leftUpperArm.render();
 
-  leftForearm = new Cube();
+  var leftForearm = new Cube();
   leftForearm.color = clothesColor;
   leftForearm.matrix.rotate(g_armSwipeAnimation, 0, 1, 0);
   leftForearm.matrix = new Matrix4(leftArmMatrixCoor)
@@ -322,7 +322,27 @@ function renderAllShapes(ev) {
   leftForearm.matrix.scale(0.4, 1.0, 0.4);
   leftForearm.render();
 
-  sword = new Tetrahedron();
+  var rightUpperArm = new Cube();
+  rightUpperArm.color = clothesColor;
+  rightUpperArm.matrix = new Matrix4(bodyCoordinatesMat)
+  rightUpperArm.matrix.scale(-1.0, 1.0, 1.0);
+  rightUpperArm.matrix.translate(-1.4, -1.5, -0.35);
+  rightUpperArm.matrix.rotate(-20, 0, 0, 1);
+  rightUpperArm.matrix.rotate(g_bodyAnimation, 1, 1, 0);
+  rightArmMatrixCoor = new Matrix4(rightUpperArm.matrix)
+  rightUpperArm.matrix.scale(0.4, 1.0, 0.4);
+  rightUpperArm.render();
+
+  var rightForearm = new Cube();
+  rightForearm.color = clothesColor;
+  rightForearm.matrix.rotate(g_armSwipeAnimation, 0, 1, 0);
+  rightForearm.matrix = new Matrix4(rightArmMatrixCoor)
+  rightForearm.matrix.translate(0.0, 0.3, -0.2);
+  rightForearm.matrix.rotate(-120, 1, 0, 0);
+  rightForearm.matrix.scale(0.4, 1.0, 0.4);
+  rightForearm.render();
+
+  var sword = new Tetrahedron();
   sword.color = [0.71, 0.71, 0.71, 1.0];
   sword.matrix = new Matrix4(leftArmMatrixCoor)
   sword.matrix.translate(0.1, -0.2, -0.9);
