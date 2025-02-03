@@ -93,6 +93,17 @@ let g_lowerArmAngle = 0;
 
 let angleSlider, tiltSlider, zoomSlider, upperArmSlider, lowerArmSlider;
 
+const musicPlayer = new Audio("hes_a_pirate.ogg");
+if(musicPlayer === null) {
+  console.log('Failed to get the music file.');
+}
+else
+{
+  console.log(musicPlayer);
+}
+// Variable to track music state
+let musicPlaying = false;
+
 function addActionsforHtmlUI() {
   angleSlider = document.getElementById('angleSlider');
   angleSlider.addEventListener('mousemove',  function() { g_globalAngle = this.value; renderAllShapes(); });
@@ -126,6 +137,17 @@ function addActionsforHtmlUI() {
 
   document.getElementById('bodyAnimationButtonOn').onclick = function() { g_bodyAnimationOn = true; };
   document.getElementById('bodyAnimationButtonOff').onclick = function() { g_bodyAnimationOn = false; };
+
+  document.getElementById('pirateMusicButton').onClick = function() { 
+    if (musicPlaying) {
+      musicPlayer.pause();
+    } 
+    else {
+      console.log("startingMusic");
+      musicPlayer.play();
+    }
+    musicPlaying = !musicPlaying;
+  };
 }
 
 let startingMouseX = 0;
